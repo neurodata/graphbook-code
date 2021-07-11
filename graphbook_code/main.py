@@ -8,6 +8,48 @@ import warnings
 import matplotlib.pyplot as plt
 
 
+def add_legend(
+    ax=None,
+    legend_labels=["No Edge", "Edge"],
+    colors=["white", "black"],
+    bbox_to_anchor=(1.15, 0.5),
+    **kwargs,
+):
+    fig = plt.gcf()
+    if ax is None:
+        ax = plt.gca()
+
+    patches = []
+    for c, l in zip(colors, legend_labels):
+        patches.append(mpl.patches.Patch(facecolor=c, label=l, edgecolor="black"))
+
+    fig.legend(
+        patches,
+        legend_labels,
+        facecolor="white",
+        edgecolor="black",
+        framealpha=1,
+        fontsize="x-large",
+        loc="center right",
+        bbox_to_anchor=bbox_to_anchor,
+        **kwargs,
+    )
+
+
+def lined_heatmap(data, binary=True, lines_every_n=None, alpha=0.8, *args, **kwargs):
+    if binary:
+        ax = binary_heatmap(data, *args, **kwargs)
+    else:
+        ax = heatmap(data, *args, **kwargs)
+    if lines_every_n is None:
+        n = len(data) // 2
+    else:
+        n = lines_every_n
+    ax.vlines(n, 0, n * 2, colors="black", lw=0.9, linestyle="dashed", alpha=alpha)
+    ax.hlines(n, 0, n * 2, colors="black", lw=0.9, linestyle="dashed", alpha=alpha)
+    return ax
+
+
 def binary_heatmap(
     X,
     colors=["white", "black"],
