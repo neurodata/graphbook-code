@@ -1,11 +1,47 @@
 # -*- coding: utf-8 -*-
 import seaborn as sns
+import numpy as np
 import matplotlib as mpl
 from matplotlib.colors import Colormap
 from graspologic.plot.plot import _check_common_inputs, _process_graphs, _plot_groups
 from graspologic.utils import import_graph
 import warnings
 import matplotlib.pyplot as plt
+
+
+def plot_latents(
+    latent_positions,
+    *,
+    title=None,
+    labels=None,
+    ax=None,
+    legend=True,
+    fontdict=None,
+    **kwargs,
+):
+    if ax is None:
+        ax = plt.gca()
+    plot = sns.scatterplot(
+        x=latent_positions[:, 0],
+        y=latent_positions[:, 1],
+        hue=labels,
+        s=10,
+        ax=ax,
+        palette="Set1",
+        color="k",
+        **kwargs,
+    )
+    if title is not None:
+        plot.set_title(title, wrap=True, fontdict=fontdict, loc="left")
+    ax.axes.xaxis.set_visible(False)
+    ax.axes.yaxis.set_visible(False)
+    h, _ = plot.get_legend_handles_labels()
+    if legend and h:
+        ax.legend(title="Community")
+    elif not legend and np.any(labels):
+        ax.get_legend().remove()
+
+    return plot
 
 
 def add_legend(
