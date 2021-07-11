@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 import seaborn as sns
 import matplotlib as mpl
+from matplotlib.colors import Colormap
+from graspologic.plot.plot import _check_common_inputs, _process_graphs, _plot_groups
+from graspologic.utils import import_graph
+import warnings
+import matplotlib.pyplot as plt
 
 
 def binary_heatmap(
