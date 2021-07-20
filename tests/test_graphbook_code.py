@@ -6,9 +6,6 @@
 import pytest
 
 
-from graphbook_code import graphbook_code
-
-
 @pytest.fixture
 def response():
     """Sample pytest fixture.

@@ -6,5 +6,15 @@ __author__ = """Alex Loftus"""
 __email__ = "aloftus2@jhu.edu"
 __version__ = "0.1.0"
 
-__all__ = ["binary_heatmap", "heatmap", "add_legend", "lined_heatmap", "plot_latents"]
-from .main import *
+__all_ = [
+    "binary_heatmap",  # plotting
+    "heatmap",
+    "add_legend",
+    "lined_heatmap",
+    "plot_latents",
+    "add_edge",  # utils
+]
+
+
+from .plotting import *
+from .utils import *
