@@ -10,6 +10,9 @@ import warnings
 import matplotlib.pyplot as plt
 
 
+
+cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "Paired"}
+
 def plot_network(network, labels, *args, **kwargs):
     """
     Default plotting function for networks.
@@ -36,7 +39,7 @@ def plot_latents(
         hue=labels,
         s=10,
         ax=ax,
-        palette="Set1",
+        palette="Paired",
         color="k",
         **kwargs,
     )
@@ -179,7 +182,7 @@ def heatmap(
     font_scale=1,
     xticklabels=False,
     yticklabels=False,
-    cmap="RdBu_r",
+    color="sequential",
     vmin=None,
     vmax=None,
     center=0,
@@ -245,8 +248,7 @@ def heatmap(
     xticklabels, yticklabels : bool or list, optional
         If list-like, plot these alternate labels as the ticklabels.
 
-    cmap : str, list of colors, or matplotlib.colors.Colormap, default: 'RdBu_r'
-        Valid matplotlib color map.
+    color : str, colormap type. "sequential", "divergent", or "qualitative".
 
     vmin, vmax : floats, optional (default=None)
         Values to anchor the colormap, otherwise they are inferred from the data and
@@ -295,6 +297,10 @@ def heatmap(
         title_pad=title_pad,
     )
 
+    if color not in cmaps.keys():
+        msg = "`color` option not a valid option."
+        raise ValueError(msg)
+
     # Handle ticklabels
     if isinstance(xticklabels, list):
         if len(xticklabels) != X.shape[1]:
@@ -337,6 +343,8 @@ def heatmap(
     if (inner_hier_labels is None) and (outer_hier_labels is not None):
         msg = "outer_hier_labels requires inner_hier_labels to be used."
         warnings.warn(msg)
+
+    cmap = cmaps[color]
 
     arr = import_graph(X)
 
