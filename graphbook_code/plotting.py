@@ -9,9 +9,44 @@ from graspologic.utils import import_graph
 import warnings
 import matplotlib.pyplot as plt
 import pandas as pd
+import networkx as nx
 
 
 cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "tab10"}
+
+def draw_layout_plot(A, ax=None, pos=None):
+    G = nx.Graph(A)
+    
+    if ax is None:
+        fig, ax = plt.subplots()
+    if pos is None:
+        pos = nx.spring_layout(G)
+    else:
+        pos = pos(G)
+        
+    rgb = np.atleast_2d((0.12156862745098039, 0.4666666666666667, 0.7058823529411765))
+    colors = np.repeat(rgb, len(A), axis=0)
+    options = {"edgecolors": "tab:gray", "node_size": 300}
+    
+    # draw
+    nx.draw_networkx_nodes(G, node_color=sns.color_palette("Purples")[-1], pos=pos, ax=ax, **options)
+    nx.draw_networkx_edges(G, alpha=.5, pos=pos, width=.3, ax=ax)
+    nx.draw_networkx_labels(G, pos, font_size=10, font_color="white", ax=ax)
+
+    plt.tight_layout()
+    return ax
+
+def draw_multiplot(A):
+    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+    
+    # heatmap
+    hm = heatmap(A, ax=axs[0], cbar=False, color="sequential", center=None, xticklabels=2, yticklabels=2)
+    sns.despine(bottom=False, left=False, top=False, right=False)
+    
+    # layout plot
+    draw_layout_plot(A, ax=axs[1])
+    
+    return axs
 
 
 def plot_network(network, labels, color="sequential", *args, **kwargs):
