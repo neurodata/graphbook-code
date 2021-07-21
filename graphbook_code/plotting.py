@@ -14,65 +14,6 @@ import pandas as pd
 cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "tab10"}
 
 
-def scattermap(data, labels, ax=None, legend=False, sizes=(5, 10), palette="Purples", **kws):
-    r"""
-    Draw a matrix using points instead of a heatmap. Helpful for larger, sparse
-    matrices.
-    Parameters
-    ----------
-    data : np.narray, scipy.sparse.csr_matrix, ndim=2
-        Matrix to plot
-    ax: matplotlib axes object, optional
-        Axes in which to draw the plot, by default None
-    legend : bool, optional
-        [description], by default False
-    sizes : tuple, optional
-        min and max of dot sizes, by default (5, 10)
-    spines : bool, optional
-        whether to keep the spines of the plot, by default False
-    border : bool, optional
-        [description], by default True
-    **kws : dict, optional
-        Additional plotting arguments
-    Returns
-    -------
-    ax: matplotlib axes object, optional
-        Axes in which to draw the plot, by default None
-    """
-
-    if ax is None:
-        _, ax = plt.subplots(1, 1, figsize=(20, 20))
-    n_verts = data.shape[0]
-    inds = np.nonzero(data)
-    edges = np.squeeze(np.asarray(data[inds]))
-    scatter_df = pd.DataFrame()
-    scatter_df["weight"] = edges
-    scatter_df["x"] = inds[1]
-    scatter_df["y"] = inds[0]
-    sns.scatterplot(
-        data=scatter_df,
-        x="x",
-        y="y",
-        size="weight",
-        legend=legend,
-        sizes=sizes,
-        ax=ax,
-        hue="weight",
-        linewidth=0,
-        palette=palette,
-        **kws,
-    )
-    if labels is None:
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_ylabel("")
-        ax.set_xlabel("")
-    else:
-        ax.set_xticks(labels)
-        ax.set_yticks(labels)
-    return ax
-
-
 def plot_network(network, labels, color="sequential", *args, **kwargs):
     """
     Default plotting function for networks.
@@ -81,7 +22,7 @@ def plot_network(network, labels, color="sequential", *args, **kwargs):
         msg = "`color` option not a valid option."
         raise ValueError(msg)
         
-    scattermap(network, labels, palette=cmaps[color])
+    heatmap(network, labels, color=color, *args, **kwargs)
 
 
 def plot_latents(
@@ -385,6 +326,7 @@ def heatmap(
         )
         raise TypeError(msg)
     # Handle cmap
+    cmap = cmaps[color]
     if not isinstance(cmap, (str, list, Colormap)):
         msg = "cmap must be a string, list of colors, or matplotlib.colors.Colormap,"
         msg += " not {}.".format(type(cmap))
@@ -405,8 +347,6 @@ def heatmap(
     if (inner_hier_labels is None) and (outer_hier_labels is not None):
         msg = "outer_hier_labels requires inner_hier_labels to be used."
         warnings.warn(msg)
-
-    cmap = cmaps[color]
 
     arr = import_graph(X)
 
