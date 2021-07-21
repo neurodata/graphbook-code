@@ -25,6 +25,7 @@ def plot_network(network, labels, color="sequential", *args, **kwargs):
     heatmap(network, labels, color=color, *args, **kwargs)
 
 
+
 def plot_latents(
     latent_positions,
     *,
@@ -58,6 +59,7 @@ def plot_latents(
         ax.get_legend().remove()
 
     return plot
+
 
 def add_legend(
     ax=None,
