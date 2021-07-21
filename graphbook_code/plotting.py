@@ -14,7 +14,9 @@ import pandas as pd
 cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "tab10"}
 
 
-def scattermap(data, labels, ax=None, legend=False, sizes=(5, 10), palette="Purples", **kws):
+def scattermap(
+    data, labels, ax=None, legend=False, sizes=(5, 10), palette="Purples", **kws
+):
     r"""
     Draw a matrix using points instead of a heatmap. Helpful for larger, sparse
     matrices.
@@ -80,7 +82,7 @@ def plot_network(network, labels, color="sequential", *args, **kwargs):
     if color not in cmaps.keys():
         msg = "`color` option not a valid option."
         raise ValueError(msg)
-        
+
     scattermap(network, labels, palette=cmaps[color])
 
 
@@ -117,6 +119,7 @@ def plot_latents(
         ax.get_legend().remove()
 
     return plot
+
 
 def add_legend(
     ax=None,
@@ -383,11 +386,6 @@ def heatmap(
         msg = "yticklabels must be a bool, int, or a list, not {}".format(
             type(yticklabels)
         )
-        raise TypeError(msg)
-    # Handle cmap
-    if not isinstance(cmap, (str, list, Colormap)):
-        msg = "cmap must be a string, list of colors, or matplotlib.colors.Colormap,"
-        msg += " not {}.".format(type(cmap))
         raise TypeError(msg)
 
     # Handle center
