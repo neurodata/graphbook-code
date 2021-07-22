@@ -3,49 +3,69 @@ import seaborn as sns
 import numpy as np
 import matplotlib as mpl
 from matplotlib.colors import Colormap
-from graspologic.plot.plot import _check_common_inputs, _process_graphs, _plot_groups
-from graspologic.plot import adjplot
+
+# from graspologic.plot.plot import _check_common_inputs, _process_graphs, _plot_groups
+from graspologic.plot.plot import (
+    _check_common_inputs,
+    _process_graphs,
+    make_axes_locatable,
+    _plot_brackets,
+    _sort_inds,
+    _unique_like,
+    _get_freqs,
+)
 from graspologic.utils import import_graph
 import warnings
 import matplotlib.pyplot as plt
-import pandas as pd
 import networkx as nx
 
 
 cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "tab10"}
 
+
 def draw_layout_plot(A, ax=None, pos=None):
     G = nx.Graph(A)
-    
+
     if ax is None:
         fig, ax = plt.subplots()
     if pos is None:
         pos = nx.spring_layout(G)
     else:
         pos = pos(G)
-        
+
     rgb = np.atleast_2d((0.12156862745098039, 0.4666666666666667, 0.7058823529411765))
     colors = np.repeat(rgb, len(A), axis=0)
     options = {"edgecolors": "tab:gray", "node_size": 300}
-    
+
     # draw
-    nx.draw_networkx_nodes(G, node_color=sns.color_palette("Purples")[-1], pos=pos, ax=ax, **options)
-    nx.draw_networkx_edges(G, alpha=.5, pos=pos, width=.3, ax=ax)
+    nx.draw_networkx_nodes(
+        G, node_color=sns.color_palette("Purples")[-1], pos=pos, ax=ax, **options
+    )
+    nx.draw_networkx_edges(G, alpha=0.5, pos=pos, width=0.3, ax=ax)
     nx.draw_networkx_labels(G, pos, font_size=10, font_color="white", ax=ax)
 
     plt.tight_layout()
     return ax
 
+
 def draw_multiplot(A):
     fig, axs = plt.subplots(1, 2, figsize=(12, 6))
-    
+
     # heatmap
-    hm = heatmap(A, ax=axs[0], cbar=False, color="sequential", center=None, xticklabels=2, yticklabels=2)
+    hm = heatmap(
+        A,
+        ax=axs[0],
+        cbar=False,
+        color="sequential",
+        center=None,
+        xticklabels=2,
+        yticklabels=2,
+    )
     sns.despine(bottom=False, left=False, top=False, right=False)
-    
+
     # layout plot
     draw_layout_plot(A, ax=axs[1])
-    
+
     return axs
 
 
@@ -56,9 +76,8 @@ def plot_network(network, labels, color="sequential", *args, **kwargs):
     if color not in cmaps.keys():
         msg = "`color` option not a valid option."
         raise ValueError(msg)
-        
-    heatmap(network, labels, color=color, *args, **kwargs)
 
+    heatmap(network, labels, color=color, *args, **kwargs)
 
 
 def plot_latents(
@@ -433,3 +452,117 @@ def heatmap(
             else:
                 _plot_groups(plot, arr, inner_hier_labels, fontsize=hier_label_fontsize)
     return plot
+
+
+def _plot_groups(ax, graph, inner_labels, outer_labels=None, fontsize=30):
+    inner_labels = np.array(inner_labels)
+    plot_outer = True
+    if outer_labels is None:
+        outer_labels = np.ones_like(inner_labels)
+        plot_outer = False
+
+    sorted_inds = _sort_inds(graph, inner_labels, outer_labels, False)
+    inner_labels = inner_labels[sorted_inds]
+    outer_labels = outer_labels[sorted_inds]
+
+    inner_freq, inner_freq_cumsum, outer_freq, outer_freq_cumsum = _get_freqs(
+        inner_labels, outer_labels
+    )
+    inner_unique, _ = _unique_like(inner_labels)
+    outer_unique, _ = _unique_like(outer_labels)
+
+    n_verts = graph.shape[0]
+    axline_kws = dict(linestyle="dashed", lw=0.9, alpha=0.3, zorder=3, color="grey")
+    # draw lines
+    for x in inner_freq_cumsum[1:-1]:
+        ax.vlines(x, 0, n_verts + 1, **axline_kws)
+        ax.hlines(x, 0, n_verts + 1, **axline_kws)
+
+    # add specific lines for the borders of the plot
+    pad = 0.001
+    low = pad
+    high = 1 - pad
+    ax.plot((low, low), (low, high), transform=ax.transAxes, **axline_kws)
+    ax.plot((low, high), (low, low), transform=ax.transAxes, **axline_kws)
+    ax.plot((high, high), (low, high), transform=ax.transAxes, **axline_kws)
+    ax.plot((low, high), (high, high), transform=ax.transAxes, **axline_kws)
+
+    # generic curve that we will use for everything
+    lx = np.linspace(-np.pi / 2.0 + 0.05, np.pi / 2.0 - 0.05, 500)
+    tan = np.tan(lx)
+    curve = np.hstack((tan[::-1], tan))
+
+    divider = make_axes_locatable(ax)
+
+    # inner curve generation
+    inner_tick_loc = inner_freq.cumsum() - inner_freq / 2
+    inner_tick_width = inner_freq / 2
+    # outer curve generation
+    outer_tick_loc = outer_freq.cumsum() - outer_freq / 2
+    outer_tick_width = outer_freq / 2
+
+    # top inner curves
+    ax_x = divider.new_vertical(size="5%", pad=0.1, pack_start=False)
+    ax.figure.add_axes(ax_x)
+    _plot_brackets(
+        ax_x,
+        np.tile(inner_unique, len(outer_unique)),
+        inner_tick_loc,
+        inner_tick_width,
+        curve,
+        "inner",
+        "x",
+        n_verts,
+        fontsize,
+    )
+    # side inner curves
+    if ax.get_yticklabels():
+        yticklabel_fontsize = ax.get_yticklabels()[0].get_fontsize()
+        ypad = yticklabel_fontsize * 0.03
+    else:
+        ypad = 0.0
+    ax_y = divider.new_horizontal(size="5%", pad=ypad, pack_start=True)
+    ax.figure.add_axes(ax_y)
+    _plot_brackets(
+        ax_y,
+        np.tile(inner_unique, len(outer_unique)),
+        inner_tick_loc,
+        inner_tick_width,
+        curve,
+        "inner",
+        "y",
+        n_verts,
+        fontsize,
+    )
+
+    if plot_outer:
+        # top outer curves
+        pad_scalar = 0.35 / 30 * fontsize
+        ax_x2 = divider.new_vertical(size="5%", pad=pad_scalar, pack_start=False)
+        ax.figure.add_axes(ax_x2)
+        _plot_brackets(
+            ax_x2,
+            outer_unique,
+            outer_tick_loc,
+            outer_tick_width,
+            curve,
+            "outer",
+            "x",
+            n_verts,
+            fontsize,
+        )
+        # side outer curves
+        ax_y2 = divider.new_horizontal(size="5%", pad=pad_scalar, pack_start=True)
+        ax.figure.add_axes(ax_y2)
+        _plot_brackets(
+            ax_y2,
+            outer_unique,
+            outer_tick_loc,
+            outer_tick_width,
+            curve,
+            "outer",
+            "y",
+            n_verts,
+            fontsize,
+        )
+    return ax
