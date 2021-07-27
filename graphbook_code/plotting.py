@@ -23,7 +23,33 @@ import networkx as nx
 cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "tab10"}
 
 
-def draw_layout_plot(A, ax=None, pos=None):
+class GraphColormap:
+    """
+    Default class for colormaps.
+    """
+    def __init__(self, color, discrete=True, k=None):
+        """
+        color corresponds to the name of the map type (sequential, divergent, quualitative). 
+        If discrete is true, discretizes the colormap. Must be true for qualitative colormap.
+        """
+        if color not in cmaps.keys():
+            msg = "`color` option not a valid option."
+            raise ValueError(msg)
+        if (k is not None) and (not discrete):
+            msg = "`k` only specified (optionally) for discrete colormaps."
+            raise ValueError(msg)
+        self.scale = color
+        self.color = cmaps[color]
+        self.discrete = discrete
+        self.k = k
+        kwargs = {}
+        kwargs["as_cmap"] = (not self.discrete)
+        if k is not None:
+            kwargs["n_colors"] = self.k
+        self.palette = sns.color_palette(self.color, **kwargs)
+
+
+def draw_layout_plot(A, labels=None, ax=None, pos=None):
     G = nx.Graph(A)
 
     if ax is None:
@@ -37,9 +63,19 @@ def draw_layout_plot(A, ax=None, pos=None):
     colors = np.repeat(rgb, len(A), axis=0)
     options = {"edgecolors": "tab:gray", "node_size": 300}
 
+    if labels is not None:
+        n_unique = len(np.unique(labels))
+        lab_dict = {}
+        for j, lab in enumerate(np.unique(labels)):
+            lab_dict[lab] = j
+        cm = GraphColormap("qualitative", discrete=True, k=n_unique)
+        lab_colors = [cm.palette[lab_dict[i]] for i in labels]
+    else:
+        cm = GraphColormap("qualitative", discrete=True, k=1)
+        lab_colors = [cm.palette[0] for i in range(0, A.shape[0])]
     # draw
     nx.draw_networkx_nodes(
-        G, node_color=sns.color_palette("Purples")[-1], pos=pos, ax=ax, **options
+        G, node_color=lab_colors, pos=pos, ax=ax, **options
     )
     nx.draw_networkx_edges(G, alpha=0.5, pos=pos, width=0.3, ax=ax)
     nx.draw_networkx_labels(G, pos, font_size=10, font_color="white", ax=ax)
@@ -48,7 +84,7 @@ def draw_layout_plot(A, ax=None, pos=None):
     return ax
 
 
-def draw_multiplot(A):
+def draw_multiplot(A, labels=None):
     fig, axs = plt.subplots(1, 2, figsize=(12, 6))
 
     # heatmap
@@ -64,7 +100,7 @@ def draw_multiplot(A):
     sns.despine(bottom=False, left=False, top=False, right=False)
 
     # layout plot
-    draw_layout_plot(A, ax=axs[1])
+    draw_layout_plot(A, labels=labels, ax=axs[1])
 
     return axs
 
