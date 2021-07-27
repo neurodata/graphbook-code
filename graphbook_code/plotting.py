@@ -23,7 +23,12 @@ import networkx as nx
 cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "tab10"}
 
 
-def draw_layout_plot(A, ax=None, pos=None):
+def draw_layout_plot(A, ax=None, pos=None, labels=None, cmap=None):
+    if cmap not in cmaps:
+        raise ValueError(f"Your cmap must be in {list(cmaps.keys())}")
+    if cmap is None:
+        cmap = "qualitative"
+
     G = nx.Graph(A)
 
     if ax is None:
@@ -33,22 +38,29 @@ def draw_layout_plot(A, ax=None, pos=None):
     else:
         pos = pos(G)
 
-    rgb = np.atleast_2d((0.12156862745098039, 0.4666666666666667, 0.7058823529411765))
-    colors = np.repeat(rgb, len(A), axis=0)
     options = {"edgecolors": "tab:gray", "node_size": 300}
 
     # draw
-    nx.draw_networkx_nodes(
-        G, node_color=sns.color_palette("Purples")[-1], pos=pos, ax=ax, **options
-    )
+    node_color = cmaps[cmap]
+    if labels is not None:
+        n_unique = len(np.unique(labels))
+        cpalette = sns.color_palette(cmaps[cmap], n_colors=n_unique)
+        mapping = {}
+        for j, label in enumerate(np.unique(labels)):
+            mapping[label] = j
+        colors = [cpalette[mapping[i]] for i in labels]
+    nx.draw_networkx_nodes(G, node_color=colors, pos=pos, ax=ax, **options)
     nx.draw_networkx_edges(G, alpha=0.5, pos=pos, width=0.3, ax=ax)
     nx.draw_networkx_labels(G, pos, font_size=10, font_color="white", ax=ax)
 
     plt.tight_layout()
+
     return ax
 
 
-def draw_multiplot(A):
+def draw_multiplot(A, pos=None, labels=None, cmap=None):
+    if cmap is None:
+        cmap = "qualitative"
     fig, axs = plt.subplots(1, 2, figsize=(12, 6))
 
     # heatmap
@@ -57,14 +69,13 @@ def draw_multiplot(A):
         ax=axs[0],
         cbar=False,
         color="sequential",
-        center=None,
         xticklabels=2,
         yticklabels=2,
+        inner_hier_labels=labels,
     )
-    sns.despine(bottom=False, left=False, top=False, right=False)
 
     # layout plot
-    draw_layout_plot(A, ax=axs[1])
+    draw_layout_plot(A, ax=axs[1], pos=None, labels=labels, cmap=cmap)
 
     return axs
 
@@ -244,7 +255,7 @@ def heatmap(
     color="sequential",
     vmin=None,
     vmax=None,
-    center=0,
+    center=None,
     cbar=True,
     inner_hier_labels=None,
     outer_hier_labels=None,
@@ -382,7 +393,8 @@ def heatmap(
         )
         raise TypeError(msg)
     # Handle cmap
-    cmap = cmaps[color]
+    n_colors = 2 if len(np.unique(X)) == 2 else None
+    cmap = sns.color_palette(cmaps[color], n_colors=n_colors)
     if not isinstance(cmap, (str, list, Colormap)):
         msg = "cmap must be a string, list of colors, or matplotlib.colors.Colormap,"
         msg += " not {}.".format(type(cmap))
