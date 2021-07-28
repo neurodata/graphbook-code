@@ -113,7 +113,7 @@ def draw_multiplot(A, pos=None, labels=None, cmap=None, title=None):
     # layout plot
     draw_layout_plot(A, ax=axs[1], pos=None, labels=labels, cmap=cmap)
     if title is not None:
-        plt.suptitle(title, fontsize=16, y=1.1)
+        plt.suptitle(title, fontsize=20, y=1.1)
 
     return axs
 
@@ -137,17 +137,20 @@ def plot_latents(
     ax=None,
     legend=True,
     fontdict=None,
+    palette=None,
     **kwargs,
 ):
     if ax is None:
         ax = plt.gca()
+    if palette is None:
+        palette = GraphColormap("qualitative").color
     plot = sns.scatterplot(
         x=latent_positions[:, 0],
         y=latent_positions[:, 1],
         hue=labels,
         s=10,
         ax=ax,
-        palette="tab10",
+        palette=palette,
         color="k",
         **kwargs,
     )
