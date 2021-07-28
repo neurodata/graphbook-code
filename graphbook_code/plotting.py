@@ -23,12 +23,38 @@ import networkx as nx
 cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "tab10"}
 
 
+class GraphColormap:
+    """
+    Default class for colormaps.
+    """
+
+    def __init__(self, color, discrete=True, k=None):
+        """
+        color corresponds to the name of the map type (sequential, divergent, quualitative).
+        If discrete is true, discretizes the colormap. Must be true for qualitative colormap.
+        """
+        if color not in cmaps.keys():
+            msg = "`color` option not a valid option."
+            raise ValueError(msg)
+        if (k is not None) and (not discrete):
+            msg = "`k` only specified (optionally) for discrete colormaps."
+            raise ValueError(msg)
+        self.scale = color
+        self.color = cmaps[color]
+        self.discrete = discrete
+        self.k = k
+        kwargs = {}
+        kwargs["as_cmap"] = not self.discrete
+        if k is not None:
+            kwargs["n_colors"] = self.k
+        self.palette = sns.color_palette(self.color, **kwargs)
+
+
 def draw_layout_plot(A, ax=None, pos=None, labels=None, cmap=None):
     if cmap not in cmaps:
         raise ValueError(f"Your cmap must be in {list(cmaps.keys())}")
     if cmap is None:
         cmap = "qualitative"
-
     G = nx.Graph(A)
 
     if ax is None:
@@ -40,6 +66,16 @@ def draw_layout_plot(A, ax=None, pos=None, labels=None, cmap=None):
 
     options = {"edgecolors": "tab:gray", "node_size": 300}
 
+    if labels is not None:
+        n_unique = len(np.unique(labels))
+        lab_dict = {}
+        for j, lab in enumerate(np.unique(labels)):
+            lab_dict[lab] = j
+        cm = GraphColormap("qualitative", discrete=True, k=n_unique)
+        lab_colors = [cm.palette[lab_dict[i]] for i in labels]
+    else:
+        cm = GraphColormap("qualitative", discrete=True, k=1)
+        lab_colors = [cm.palette[0] for i in range(0, A.shape[0])]
     # draw
     node_color = cmaps[cmap]
     if labels is not None:
@@ -58,7 +94,7 @@ def draw_layout_plot(A, ax=None, pos=None, labels=None, cmap=None):
     return ax
 
 
-def draw_multiplot(A, pos=None, labels=None, cmap=None):
+def draw_multiplot(A, pos=None, labels=None, cmap=None, title=None):
     if cmap is None:
         cmap = "qualitative"
     fig, axs = plt.subplots(1, 2, figsize=(12, 6))
@@ -76,6 +112,8 @@ def draw_multiplot(A, pos=None, labels=None, cmap=None):
 
     # layout plot
     draw_layout_plot(A, ax=axs[1], pos=None, labels=labels, cmap=cmap)
+    if title is not None:
+        plt.suptitle(title, fontsize=16, y=1.1)
 
     return axs
 
@@ -216,8 +254,10 @@ def binary_heatmap(
 
     # cbar doesn't make sense in the binary case, use legend instead
     kwargs["cbar"] = False
-    cmap = mpl.colors.ListedColormap(colors)
-    ax = heatmap(X, center=None, cmap=cmap, **kwargs)
+    if "cmap" not in kwargs:
+        cmap = mpl.colors.ListedColormap(colors)
+        kwargs["cmap"] = cmap
+    ax = heatmap(X, center=None, **kwargs)
     if legend:
         no_edge_patch = mpl.patches.Patch(
             facecolor=colors[0], label=legend_labels[0], edgecolor="black"
@@ -394,11 +434,17 @@ def heatmap(
         raise TypeError(msg)
     # Handle cmap
     n_colors = 2 if len(np.unique(X)) == 2 else None
-    cmap = sns.color_palette(cmaps[color], n_colors=n_colors)
-    if not isinstance(cmap, (str, list, Colormap)):
-        msg = "cmap must be a string, list of colors, or matplotlib.colors.Colormap,"
-        msg += " not {}.".format(type(cmap))
-        raise TypeError(msg)
+    if "cmap" not in kwargs:
+        cmap = sns.color_palette(cmaps[color], n_colors=n_colors)
+        kwargs["cmap"] = cmap
+        if not isinstance(cmap, (str, list, Colormap)):
+            msg = (
+                "cmap must be a string, list of colors, or matplotlib.colors.Colormap,"
+            )
+            msg += " not {}.".format(type(cmap))
+            raise TypeError(msg)
+    else:
+        cmap = kwargs["cmap"]
 
     # Handle center
     if center is not None:
@@ -430,7 +476,6 @@ def heatmap(
             fig, ax = plt.subplots(figsize=figsize)
         plot = sns.heatmap(
             arr,
-            cmap=cmap,
             square=True,
             xticklabels=xticklabels,
             yticklabels=yticklabels,
