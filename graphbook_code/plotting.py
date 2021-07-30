@@ -50,11 +50,10 @@ class GraphColormap:
         self.palette = sns.color_palette(self.color, **kwargs)
 
 
-def draw_layout_plot(A, ax=None, pos=None, labels=None, cmap=None):
-    if cmap not in cmaps:
-        raise ValueError(f"Your cmap must be in {list(cmaps.keys())}")
-    if cmap is None:
-        cmap = "qualitative"
+def draw_layout_plot(A, ax=None, pos=None, labels=None, node_color="qualitative"):
+    if node_color not in cmaps.keys():
+        raise ValueError(f"Your `node_color` must be in {list(cmaps.keys())}")
+
     G = nx.Graph(A)
 
     if ax is None:
@@ -71,32 +70,28 @@ def draw_layout_plot(A, ax=None, pos=None, labels=None, cmap=None):
         lab_dict = {}
         for j, lab in enumerate(np.unique(labels)):
             lab_dict[lab] = j
-        cm = GraphColormap("qualitative", discrete=True, k=n_unique)
-        lab_colors = [cm.palette[lab_dict[i]] for i in labels]
+        cm = GraphColormap(node_color, discrete=True, k=n_unique)
+        node_colors = [cm.palette[lab_dict[i]] for i in labels]
+        commlist = [plt.Line2D((0, 1), (0, 0), color=cm.palette[col], marker='o', linestyle='') for lab, col in lab_dict.items()]
+        namelist = ["Community " + str(lab) for lab in lab_dict.keys()]
     else:
-        cm = GraphColormap("qualitative", discrete=True, k=1)
-        lab_colors = [cm.palette[0] for i in range(0, A.shape[0])]
+        cm = GraphColormap(node_color, discrete=True, k=1)
+        node_colors = [cm.palette[0] for i in range(0, A.shape[0])]
     # draw
-    node_color = cmaps[cmap]
-    if labels is not None:
-        n_unique = len(np.unique(labels))
-        cpalette = sns.color_palette(cmaps[cmap], n_colors=n_unique)
-        mapping = {}
-        for j, label in enumerate(np.unique(labels)):
-            mapping[label] = j
-        colors = [cpalette[mapping[i]] for i in labels]
-    nx.draw_networkx_nodes(G, node_color=colors, pos=pos, ax=ax, **options)
+    nodes_plt = nx.draw_networkx_nodes(G, node_color=node_colors, pos=pos, ax=ax, **options)
     nx.draw_networkx_edges(G, alpha=0.5, pos=pos, width=0.3, ax=ax)
     nx.draw_networkx_labels(G, pos, font_size=10, font_color="white", ax=ax)
 
+    if labels is not None:
+        ax.legend(commlist, namelist)
+
     plt.tight_layout()
 
-    return ax
 
+def draw_multiplot(A, pos=None, labels=None, node_color="qualitative", title=None):
+    if node_color not in cmaps.keys():
+        raise ValueError(f"Your `node_color` must be in {list(cmaps.keys())}")
 
-def draw_multiplot(A, pos=None, labels=None, cmap=None, title=None):
-    if cmap is None:
-        cmap = "qualitative"
     fig, axs = plt.subplots(1, 2, figsize=(12, 6))
 
     # heatmap
@@ -111,7 +106,7 @@ def draw_multiplot(A, pos=None, labels=None, cmap=None, title=None):
     )
 
     # layout plot
-    draw_layout_plot(A, ax=axs[1], pos=None, labels=labels, cmap=cmap)
+    draw_layout_plot(A, ax=axs[1], pos=None, labels=labels, node_color=node_color)
     if title is not None:
         plt.suptitle(title, fontsize=20, y=1.1)
 
