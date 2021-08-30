@@ -88,7 +88,7 @@ def draw_layout_plot(A, ax=None, pos=None, labels=None, node_color="qualitative"
     plt.tight_layout()
 
 
-def draw_multiplot(A, pos=None, labels=None, node_color="qualitative", title=None):
+def draw_multiplot(A, pos=None, labels=None, xticklabels=False, yticklabels=False, node_color="qualitative", title=None):
     if node_color not in cmaps.keys():
         raise ValueError(f"Your `node_color` must be in {list(cmaps.keys())}")
 
@@ -100,8 +100,8 @@ def draw_multiplot(A, pos=None, labels=None, node_color="qualitative", title=Non
         ax=axs[0],
         cbar=False,
         color="sequential",
-        xticklabels=2,
-        yticklabels=2,
+        xticklabels=xticklabels,
+        yticklabels=yticklabels,
         inner_hier_labels=labels,
     )
 
