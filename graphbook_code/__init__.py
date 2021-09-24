@@ -13,7 +13,8 @@ __all_ = [
     "lined_heatmap",
     "plot_latents",
     "draw_layout_plot",
-    "draw_multiplot" "add_edge",  # utils
+    "draw_multiplot",  # utils
+    "text",
 ]
 
 

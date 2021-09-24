@@ -23,6 +23,28 @@ import networkx as nx
 cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "tab10"}
 
 
+def text(label, x, y, ax=None):
+    """
+    Add text to a figure.
+    """
+    if ax is None:
+        ax = plt.gca()
+    left, width, bottom, height = 0.25, 0.5, 0.25, 0.5
+    right = left + width
+    top = bottom + height
+    t = ax.text(
+        x * (left + right),
+        y * (bottom + top),
+        label,
+        horizontalalignment="center",
+        verticalalignment="center",
+        transform=ax.transAxes,
+        size=32,
+        bbox=dict(facecolor="white", edgecolor="none", alpha=0.5),
+    )
+    return t
+
+
 class GraphColormap:
     """
     Default class for colormaps.
@@ -152,10 +174,12 @@ def plot_latents(
         ax = plt.gca()
     if palette is None:
         palette = GraphColormap("qualitative").color
-    if "s" not in kwargs:
+    if "s" not in kwargs:  # messy way to do this but w/e
         s = 10
     else:
         s = kwargs["s"]
+        del kwargs["s"]
+
     plot = sns.scatterplot(
         x=latent_positions[:, 0],
         y=latent_positions[:, 1],
@@ -230,30 +254,30 @@ def binary_heatmap(
     **kwargs,
 ):
     """
-    Plots an unweighted graph as a black-and-white matrix with a binary colorbar.  Takes
+        Plots an unweighted graph as a black-and-white matrix with a binary colorbar.  Takes
     the same keyword arguments as ``plot.heatmap``.
 
-    Parameters
-    ----------
-    X : nx.Graph or np.ndarray object
-        Unweighted graph or numpy matrix to plot.
+        Parameters
+        ----------
+        X : nx.Graph or np.ndarray object
+            Unweighted graph or numpy matrix to plot.
 
-    colors : list-like or np.ndarray
-        A list of exactly two colors to use for the heatmap.
+        colors : list-like or np.ndarray
+            A list of exactly two colors to use for the heatmap.
 
-    legend : bool, default = True
-        If True, add a legend to the heatmap denoting which colors denote which
-        ticklabels.
+        legend : bool, default = True
+            If True, add a legend to the heatmap denoting which colors denote which
+            ticklabels.
 
-    legend_labels : list-like
-        Binary labels to use in the legend. Not used if legend is False.
+        legend_labels : list-like
+            Binary labels to use in the legend. Not used if legend is False.
 
-    outline: bool, default = False
-        Whether to add an outline around the border of the heatmap.
+        outline: bool, default = False
+            Whether to add an outline around the border of the heatmap.
 
 
-    **kwargs : dict, optional
-        All keyword arguments in ``plot.heatmap``.
+        **kwargs : dict, optional
+            All keyword arguments in ``plot.heatmap``.
 
     """
     if len(colors) != 2:
