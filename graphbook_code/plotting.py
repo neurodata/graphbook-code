@@ -72,13 +72,18 @@ def draw_layout_plot(A, ax=None, pos=None, labels=None, node_color="qualitative"
             lab_dict[lab] = j
         cm = GraphColormap(node_color, discrete=True, k=n_unique)
         node_colors = [cm.palette[lab_dict[i]] for i in labels]
-        commlist = [plt.Line2D((0, 1), (0, 0), color=cm.palette[col], marker='o', linestyle='') for lab, col in lab_dict.items()]
+        commlist = [
+            plt.Line2D((0, 1), (0, 0), color=cm.palette[col], marker="o", linestyle="")
+            for lab, col in lab_dict.items()
+        ]
         namelist = ["Community " + str(lab) for lab in lab_dict.keys()]
     else:
         cm = GraphColormap(node_color, discrete=True, k=1)
         node_colors = [cm.palette[0] for i in range(0, A.shape[0])]
     # draw
-    nodes_plt = nx.draw_networkx_nodes(G, node_color=node_colors, pos=pos, ax=ax, **options)
+    nodes_plt = nx.draw_networkx_nodes(
+        G, node_color=node_colors, pos=pos, ax=ax, **options
+    )
     nx.draw_networkx_edges(G, alpha=0.5, pos=pos, width=0.3, ax=ax)
     nx.draw_networkx_labels(G, pos, font_size=10, font_color="white", ax=ax)
 
@@ -88,7 +93,15 @@ def draw_layout_plot(A, ax=None, pos=None, labels=None, node_color="qualitative"
     plt.tight_layout()
 
 
-def draw_multiplot(A, pos=None, labels=None, xticklabels=False, yticklabels=False, node_color="qualitative", title=None):
+def draw_multiplot(
+    A,
+    pos=None,
+    labels=None,
+    xticklabels=False,
+    yticklabels=False,
+    node_color="qualitative",
+    title=None,
+):
     if node_color not in cmaps.keys():
         raise ValueError(f"Your `node_color` must be in {list(cmaps.keys())}")
 
@@ -106,11 +119,7 @@ def draw_multiplot(A, pos=None, labels=None, xticklabels=False, yticklabels=Fals
     )
 
     # layout plot
-<<<<<<< HEAD
-    draw_layout_plot(A, ax=axs[1], pos=pos, labels=labels, cmap=cmap)
-=======
     draw_layout_plot(A, ax=axs[1], pos=None, labels=labels, node_color=node_color)
->>>>>>> f97eb4024a3f27527033d28442dae5ba3ce28dcb
     if title is not None:
         plt.suptitle(title, fontsize=20, y=1.1)
 
