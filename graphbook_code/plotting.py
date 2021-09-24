@@ -50,11 +50,13 @@ class GraphColormap:
         self.palette = sns.color_palette(self.color, **kwargs)
 
 
-def draw_layout_plot(A, ax=None, pos=None, labels=None, cmap=None):
-    if cmap not in cmaps:
-        raise ValueError(f"Your cmap must be in {list(cmaps.keys())}")
+def draw_layout_plot(A, ax=None, pos=None, labels=None, cmap=None, colors=None):
     if cmap is None:
         cmap = "qualitative"
+    if cmap not in cmaps:
+        raise ValueError(f"Your cmap must be in {list(cmaps.keys())}")
+    if colors is None:
+        colors = np.array(GraphColormap("qualitative").palette[0], ndmin=2)
     G = nx.Graph(A)
 
     if ax is None:
@@ -66,16 +68,6 @@ def draw_layout_plot(A, ax=None, pos=None, labels=None, cmap=None):
 
     options = {"edgecolors": "tab:gray", "node_size": 300}
 
-    if labels is not None:
-        n_unique = len(np.unique(labels))
-        lab_dict = {}
-        for j, lab in enumerate(np.unique(labels)):
-            lab_dict[lab] = j
-        cm = GraphColormap("qualitative", discrete=True, k=n_unique)
-        lab_colors = [cm.palette[lab_dict[i]] for i in labels]
-    else:
-        cm = GraphColormap("qualitative", discrete=True, k=1)
-        lab_colors = [cm.palette[0] for i in range(0, A.shape[0])]
     # draw
     node_color = cmaps[cmap]
     if labels is not None:
@@ -111,7 +103,7 @@ def draw_multiplot(A, pos=None, labels=None, cmap=None, title=None):
     )
 
     # layout plot
-    draw_layout_plot(A, ax=axs[1], pos=None, labels=labels, cmap=cmap)
+    draw_layout_plot(A, ax=axs[1], pos=pos, labels=labels, cmap=cmap)
     if title is not None:
         plt.suptitle(title, fontsize=20, y=1.1)
 
@@ -144,11 +136,15 @@ def plot_latents(
         ax = plt.gca()
     if palette is None:
         palette = GraphColormap("qualitative").color
+    if "s" not in kwargs:
+        s = 10
+    else:
+        s = kwargs["s"]
     plot = sns.scatterplot(
         x=latent_positions[:, 0],
         y=latent_positions[:, 1],
         hue=labels,
-        s=10,
+        s=s,
         ax=ax,
         palette=palette,
         color="k",
