@@ -16,8 +16,9 @@ __all_ = [
     "draw_multiplot",  # utils
     "text",
     "draw_cartesian",
+    "networkplot",
 ]
 
-
+# star imports work only because we have __all__ defined
 from .plotting import *
 from .utils import *
