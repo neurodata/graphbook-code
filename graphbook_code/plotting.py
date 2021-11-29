@@ -301,7 +301,7 @@ def networkplot(
             **lckwargs,
         )
         ax.add_collection(lc)
-        ax.set(xticks=[], yticks=[])
+        ax.tick_params(bottom=False, left=False)
 
     return ax
 
