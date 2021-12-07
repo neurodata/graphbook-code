@@ -1,15 +1,16 @@
 import numpy as np
 
-from ..utils import (
+from graspologic.utils import (
     import_graph,
     is_unweighted,
     remove_loops,
     symmetrize,
+    cartprod,
 )
-from .base import BaseGraphEstimator, _calculate_p
+from graspologic.base import BaseGraphEstimator, _calculate_p
 import warnings
 from scipy.stats import mannwhitneyu
-
+from scipy.stats import bernoulli
 
 class SIEMEstimator(BaseGraphEstimator):
     """
