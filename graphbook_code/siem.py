@@ -5,7 +5,6 @@ from graspologic.utils import (
     is_unweighted,
     remove_loops,
     symmetrize,
-    cartprod,
 )
 from graspologic.models import BaseGraphEstimator
 import warnings
