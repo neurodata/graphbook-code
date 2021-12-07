@@ -17,8 +17,11 @@ __all_ = [
     "text",
     "draw_cartesian",
     "networkplot",
+    "SIEMEstimator",
+    "siem"
 ]
 
 # star imports work only because we have __all__ defined
 from .plotting import *
 from .utils import *
+from .siem import *
