@@ -7,7 +7,7 @@ from graspologic.utils import (
     symmetrize,
     cartprod,
 )
-from graspologic.base import BaseGraphEstimator, _calculate_p
+from graspologic.models import BaseGraphEstimator
 import warnings
 from scipy.stats import mannwhitneyu
 from scipy.stats import bernoulli
