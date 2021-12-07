@@ -18,9 +18,40 @@ from graspologic.utils import import_graph
 import warnings
 import matplotlib.pyplot as plt
 import networkx as nx
+from typing import Union, Optional, Tuple
+from matplotlib.axes import Axes
+from scipy.sparse import csr_matrix
+from graspologic.plot.plot import _check_common_inputs
+from graspologic.preconditions import check_argument
+from sklearn.utils import check_consistent_length
+import pandas as pd
+import seaborn as sns
+from matplotlib.collections import LineCollection
 
 
 cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "tab10"}
+
+
+def text(label, x, y, ax=None):
+    """
+    Add text to a figure.
+    """
+    if ax is None:
+        ax = plt.gca()
+    left, width, bottom, height = 0.25, 0.5, 0.25, 0.5
+    right = left + width
+    top = bottom + height
+    t = ax.text(
+        x * (left + right),
+        y * (bottom + top),
+        label,
+        horizontalalignment="center",
+        verticalalignment="center",
+        transform=ax.transAxes,
+        size=32,
+        bbox=dict(facecolor="white", edgecolor="none", alpha=0.5),
+    )
+    return t
 
 
 class GraphColormap:
@@ -50,6 +81,231 @@ class GraphColormap:
         self.palette = sns.color_palette(self.color, **kwargs)
 
 
+def networkplot(
+    adjacency: Union[np.ndarray, csr_matrix],
+    x: Union[np.ndarray, str],
+    y: Union[np.ndarray, str],
+    node_data: Optional[pd.DataFrame] = None,
+    node_hue: Optional[Union[np.ndarray, str]] = None,
+    palette: Optional[Union[str, list, dict]] = None,
+    node_size: Optional[Union[np.ndarray, str]] = None,
+    node_sizes: Optional[Union[list, dict, tuple]] = None,
+    node_alpha: float = 0.8,
+    edge_hue: str = "source",
+    edge_linewidth: float = 0.2,
+    edge_alpha: float = 0.2,
+    title: str = "",
+    context: str = "talk",
+    font_scale: float = 1.0,
+    figsize: Tuple[int, int] = (10, 10),
+    ax: Optional[Axes] = None,
+    legend: str = False,
+    lckwargs: Tuple = {},
+    skwargs: Tuple = {},
+) -> Axes:
+    # Alex Note: this is a better version of draw_layout_plot, soon
+    # to be included in graspologic (PR open)
+    r"""
+    Plots 2D layout of input network. Allows for an adjacency matrix
+    with ``x, y`` as 1D arrays that represent the coordinates of each
+    node, or an adjacency matrix with ``node_data`` and ``x, y`` as
+    keys. Note that the indices of the positions given are assumed to
+    correspond with the adjacency matrix.
+    Node colors are determined by ``node_hue`` and ``palette``, and if
+    ``node_hue`` is None, all nodes will have the same default color
+    used by :func:`seaborn.scatterplot`. If ``node_hue`` is given but
+    ``palette`` is None, ``palette`` is set to 'Set1' and ``node_hue``
+    will be treated as numeric variables. Edge colors are determined by
+    its nodes, and ``edge_hue`` dictates whether the edges are colored
+    based on its source or target nodes.
+    Node sizes can also vary based on ``node_size`` and ``node_sizes``,
+    and if ``node_size`` is None, all nodes will be of the same default
+    size used by :func:`seaborn.scatterplot`. If ``node_size`` is given
+    but ``node_sizes`` is None, ``node_size`` will be treated as numeric
+    variables.
+    Note that ``palette`` and ``node_sizes`` will not affect the output
+    plot if ``node_hue`` and ``node_size`` are None, and ``node_hue`` and
+    ``node_size`` must be the same types as ``x, y``.
+    Parameters
+    ----------
+    adjacency: np.ndarray, csr_matrix
+        Adjacency matrix of input network.
+    x,y: np.ndarray, str
+        Variables that specify the positions on the x and y axes. Either an
+        array of x, y coordinates or a string that accesses a vector in
+        ``node_data``. If ``x, y`` are arrays, they must be indexed the
+        same way as the adjacency matrix of the input network.
+    node_data: pd.DataFrame, optional, default: None
+        Input data. When ``node_data`` is None, ``x, y`` must be np.ndarrays.
+        When ``node_data`` is a dataframe, ``x, y`` must be strings. Must be
+        indexed the same way as the adjacency matrix of the input network.
+    node_hue: np.ndarray, str, optional, default: None
+        Variable that produces nodes with different colors. Can be either
+        categorical or numeric, and colors are mapped based on ``palette``.
+        However if ``palette`` is None, ``node_hue`` is treated as numeric
+        and 'Set1' is used as ``palette``.
+    palette: str, list, dict, optional, default: None
+        Method for choosing colors specified in ``node_hue``. Can be a string
+        argument supported by :func:`seaborn.color_palette`, a list of colors,
+        or a dictionary with ``node_hue`` variables as keys and colors as its
+        values. Note that ``palette`` will not affect the plot if ``node_hue``
+        is not given.
+    node_size: np.ndarray, str, optional, default: None
+        Variable that produces nodes with different sizes. Can be either categorical
+        or numeric, and sizes are determined based on ``node_sizes``. If the
+        argument ``node_sizes`` is None, ``node_size`` will be treated as
+        numeric variables.
+    node_sizes: list, dict, tuple, optional, default: None
+        Method for choosing sizes specified in ``node_size``. Can be a list of
+        sizes, a dictionary with ``node_size`` variables as keys and sizes as
+        its values, or a tuple defining the minimum and maximum size values.
+        Note that ``node_sizes`` will not affect the output plot if ``node_hue``
+        is not given.
+    node_alpha: float, default: 0.8
+        Proportional opacity of the nodes.
+    edge_hue: str, one of {source (default), target}
+        Determines edge color based on its source or target node.
+    edge_linewidth: float, default: 0.2
+        Linewidth of the edges.
+    edge_alpha: float, default: 0.2
+        Proportional opacity of the edges.
+    title: str
+        Plot title.
+    context :  None, or one of {talk (default), paper, notebook, poster}
+        Seaborn plotting context
+    font_scale : float, optional, default: 1.0
+        Separate scaling factor to independently scale the size of the font
+        elements.
+    figsize : tuple of length 2, default: (10, 10)
+        Size of the figure (width, height)
+    ax: matplotlib.axes.Axes, optional, default: None
+        Axes in which to draw the plot. Otherwise, will generate own axes.
+    legend: False (default), or one of {brief, full, auto}
+        How to draw the legend. If “brief”, numeric hue and size variables
+        will be represented with a sample of evenly spaced values. If “full”,
+        every group will get an entry in the legend. If “auto”, choose
+        between brief or full representation based on number of levels. If
+        False, no legend data is added and no legend is drawn.
+    Returns
+    -------
+    ax : matplotlib axis object
+        Output plot
+    """
+
+    _check_common_inputs(
+        figsize=figsize, title=title, context=context, font_scale=font_scale
+    )
+
+    index = range(adjacency.shape[0])
+    if isinstance(x, np.ndarray):
+        check_consistent_length(adjacency, x, y)
+        check_argument(
+            node_data is None, "If x and y are numpy arrays, meta_data must be None."
+        )
+        plot_df = pd.DataFrame(index=index)
+        x_key = "x"
+        y_key = "y"
+        plot_df.loc[:, x_key] = x
+        plot_df.loc[:, y_key] = y
+        if node_hue is not None:
+            check_argument(
+                isinstance(node_hue, np.ndarray),
+                "If x and y are numpy arrays, node_hue must be a list or a numpy array.",
+            )
+            check_consistent_length(x, node_hue)
+            hue_key = "hue"
+            plot_df.loc[:, hue_key] = node_hue
+            if palette is None:
+                palette = "Set1"
+        else:
+            hue_key = None
+    elif isinstance(x, str):
+        check_consistent_length(adjacency, node_data)
+        check_argument(
+            node_data is not None,
+            "If x and y are strings, meta_data must be pandas DataFrame.",
+        )
+        plot_df = node_data.copy()
+        x_key = x
+        y_key = y
+        if node_hue is not None:
+            check_argument(
+                isinstance(node_hue, str),
+                "If x and y are strings, node_hue must also be a string.",
+            )
+            hue_key = node_hue
+            if palette is None:
+                palette = "Set1"
+        else:
+            hue_key = None
+    else:
+        raise TypeError("x and y must be numpy arrays or strings.")
+
+    pre_inds, post_inds = adjacency.nonzero()
+    pre = np.array(index)[pre_inds.astype(int)]
+    post = np.array(index)[post_inds.astype(int)]
+    rows = {"source": pre, "target": post}
+
+    edgelist = pd.DataFrame(rows)
+    pre_edgelist = edgelist.copy()
+    post_edgelist = edgelist.copy()
+
+    pre_edgelist["x"] = pre_edgelist["source"].map(plot_df[x_key])
+    pre_edgelist["y"] = pre_edgelist["source"].map(plot_df[y_key])
+    post_edgelist["x"] = post_edgelist["target"].map(plot_df[x_key])
+    post_edgelist["y"] = post_edgelist["target"].map(plot_df[y_key])
+    pre_coords = list(zip(pre_edgelist["x"], pre_edgelist["y"]))
+    post_coords = list(zip(post_edgelist["x"], post_edgelist["y"]))
+    coords = list(zip(pre_coords, post_coords))
+
+    if node_hue is not None:
+        if isinstance(palette, str):
+            palette = sns.color_palette(
+                palette, n_colors=len(plot_df[hue_key].unique())
+            )
+            plot_palette = dict(zip(plot_df[hue_key].unique(), palette))
+        elif isinstance(palette, list):
+            plot_palette = dict(zip(plot_df[hue_key].unique(), palette))
+        elif isinstance(palette, dict):
+            plot_palette = palette
+        edgelist[hue_key] = edgelist[edge_hue].map(plot_df[hue_key])
+        edge_colors = edgelist[hue_key].map(plot_palette)
+    else:
+        plot_palette = None
+        edge_colors = None
+
+    with sns.plotting_context(context=context, font_scale=font_scale):
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=figsize)
+        sns.scatterplot(
+            data=plot_df,
+            x=x_key,
+            y=y_key,
+            hue=hue_key,
+            palette=plot_palette,
+            size=node_size,
+            sizes=node_sizes,
+            ax=ax,
+            legend=legend,
+            alpha=node_alpha,
+            zorder=1,
+            **skwargs,
+        )
+        plt.title(title)
+        lc = LineCollection(
+            segments=coords,
+            alpha=edge_alpha,
+            linewidths=edge_linewidth,
+            colors=edge_colors,
+            zorder=0,
+            **lckwargs,
+        )
+        ax.add_collection(lc)
+        ax.tick_params(bottom=False, left=False)
+
+    return ax
+
+
 def draw_layout_plot(A, ax=None, pos=None, labels=None, node_color="qualitative"):
     if node_color not in cmaps.keys():
         raise ValueError(f"Your `node_color` must be in {list(cmaps.keys())}")
@@ -72,13 +328,18 @@ def draw_layout_plot(A, ax=None, pos=None, labels=None, node_color="qualitative"
             lab_dict[lab] = j
         cm = GraphColormap(node_color, discrete=True, k=n_unique)
         node_colors = [cm.palette[lab_dict[i]] for i in labels]
-        commlist = [plt.Line2D((0, 1), (0, 0), color=cm.palette[col], marker='o', linestyle='') for lab, col in lab_dict.items()]
+        commlist = [
+            plt.Line2D((0, 1), (0, 0), color=cm.palette[col], marker="o", linestyle="")
+            for lab, col in lab_dict.items()
+        ]
         namelist = ["Community " + str(lab) for lab in lab_dict.keys()]
     else:
         cm = GraphColormap(node_color, discrete=True, k=1)
         node_colors = [cm.palette[0] for i in range(0, A.shape[0])]
     # draw
-    nodes_plt = nx.draw_networkx_nodes(G, node_color=node_colors, pos=pos, ax=ax, **options)
+    nodes_plt = nx.draw_networkx_nodes(
+        G, node_color=node_colors, pos=pos, ax=ax, **options
+    )
     nx.draw_networkx_edges(G, alpha=0.5, pos=pos, width=0.3, ax=ax)
     nx.draw_networkx_labels(G, pos, font_size=10, font_color="white", ax=ax)
 
@@ -88,7 +349,15 @@ def draw_layout_plot(A, ax=None, pos=None, labels=None, node_color="qualitative"
     plt.tight_layout()
 
 
-def draw_multiplot(A, pos=None, labels=None, xticklabels=False, yticklabels=False, node_color="qualitative", title=None):
+def draw_multiplot(
+    A,
+    pos=None,
+    labels=None,
+    xticklabels=False,
+    yticklabels=False,
+    node_color="qualitative",
+    title=None,
+):
     if node_color not in cmaps.keys():
         raise ValueError(f"Your `node_color` must be in {list(cmaps.keys())}")
 
@@ -124,6 +393,68 @@ def plot_network(network, labels, color="sequential", *args, **kwargs):
     heatmap(network, labels, color=color, *args, **kwargs)
 
 
+def draw_cartesian(xrange=(-2, 2), yrange=(-2, 2), ticks_frequency=5, ax=None):
+    """
+    Draw a cartesian coordinate axis.
+
+    Parameters
+    ----------
+    xrange : tuple, optional
+        xmin, xmax, by default (-2, 2)
+    yrange : tuple, optional
+        ymin, ymax, by default (-2, 2)
+    ticks_frequency : int, optional
+        interval for ticks, by default 5
+    ax : [type], optional
+        if None, makes new fig and ax, by default None
+
+    Returns
+    -------
+    ax
+        Cartesian coordinate axis.
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(5, 5))
+    xmin, xmax = xrange
+    ymin, ymax = yrange
+
+    # Set identical scales for both axes
+    ax.set(xlim=(xmin - 1, xmax + 1), ylim=(ymin - 1, ymax + 1), aspect="equal")
+
+    # Set bottom and left spines as x and y axes of coordinate system
+    ax.spines["bottom"].set_position("zero")
+    ax.spines["left"].set_position("zero")
+
+    # Remove top and right spines
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    # Create 'x' and 'y' labels placed at the end of the axes
+    ax.set_xlabel("x", size=14, labelpad=-24, x=1.03)
+    ax.set_ylabel("y", size=14, labelpad=-21, y=1.02, rotation=0)
+
+    # Create custom major ticks to determine position of tick labels
+    x_ticks = np.arange(xmin, xmax + 1, ticks_frequency)
+    y_ticks = np.arange(ymin, ymax + 1, ticks_frequency)
+    ax.set_xticks(x_ticks[x_ticks != 0])
+    ax.set_yticks(y_ticks[y_ticks != 0])
+
+    # Create minor ticks placed at each integer to enable drawing of minor grid
+    # lines: note that this has no effect in this example with ticks_frequency=1
+    ax.set_xticks(np.arange(xmin, xmax + 1), minor=True)
+    ax.set_yticks(np.arange(ymin, ymax + 1), minor=True)
+
+    # Draw major and minor grid lines
+    ax.grid(which="both", color="grey", linewidth=1, linestyle="-", alpha=0.05)
+
+    # Draw arrows
+    arrow_fmt = dict(markersize=4, color="black", clip_on=False)
+    ax.plot((1), (0), marker=">", transform=ax.get_yaxis_transform(), **arrow_fmt)
+    ax.plot((0), (1), marker="^", transform=ax.get_xaxis_transform(), **arrow_fmt)
+
+    return ax
+
+
 def plot_latents(
     latent_positions,
     *,
@@ -139,11 +470,17 @@ def plot_latents(
         ax = plt.gca()
     if palette is None:
         palette = GraphColormap("qualitative").color
+    if "s" not in kwargs:  # messy way to do this but w/e
+        s = 10
+    else:
+        s = kwargs["s"]
+        del kwargs["s"]
+
     plot = sns.scatterplot(
         x=latent_positions[:, 0],
         y=latent_positions[:, 1],
         hue=labels,
-        s=10,
+        s=s,
         ax=ax,
         palette=palette,
         color="k",
@@ -151,8 +488,7 @@ def plot_latents(
     )
     if title is not None:
         plot.set_title(title, wrap=True, fontdict=fontdict, loc="left")
-    ax.axes.xaxis.set_visible(False)
-    ax.axes.yaxis.set_visible(False)
+
     h, _ = plot.get_legend_handles_labels()
     if legend and h:
         ax.legend(title="Community")
@@ -213,30 +549,30 @@ def binary_heatmap(
     **kwargs,
 ):
     """
-    Plots an unweighted graph as a black-and-white matrix with a binary colorbar.  Takes
+        Plots an unweighted graph as a black-and-white matrix with a binary colorbar.  Takes
     the same keyword arguments as ``plot.heatmap``.
 
-    Parameters
-    ----------
-    X : nx.Graph or np.ndarray object
-        Unweighted graph or numpy matrix to plot.
+        Parameters
+        ----------
+        X : nx.Graph or np.ndarray object
+            Unweighted graph or numpy matrix to plot.
 
-    colors : list-like or np.ndarray
-        A list of exactly two colors to use for the heatmap.
+        colors : list-like or np.ndarray
+            A list of exactly two colors to use for the heatmap.
 
-    legend : bool, default = True
-        If True, add a legend to the heatmap denoting which colors denote which
-        ticklabels.
+        legend : bool, default = True
+            If True, add a legend to the heatmap denoting which colors denote which
+            ticklabels.
 
-    legend_labels : list-like
-        Binary labels to use in the legend. Not used if legend is False.
+        legend_labels : list-like
+            Binary labels to use in the legend. Not used if legend is False.
 
-    outline: bool, default = False
-        Whether to add an outline around the border of the heatmap.
+        outline: bool, default = False
+            Whether to add an outline around the border of the heatmap.
 
 
-    **kwargs : dict, optional
-        All keyword arguments in ``plot.heatmap``.
+        **kwargs : dict, optional
+            All keyword arguments in ``plot.heatmap``.
 
     """
     if len(colors) != 2:
@@ -431,6 +767,7 @@ def heatmap(
         )
         raise TypeError(msg)
     # Handle cmap
+    X = np.asarray(X)
     n_colors = 2 if len(np.unique(X)) == 2 else None
     if "cmap" not in kwargs:
         cmap = sns.color_palette(cmaps[color], n_colors=n_colors)
