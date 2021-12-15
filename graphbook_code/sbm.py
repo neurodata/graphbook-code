@@ -20,7 +20,22 @@ from graspologic.utils import (
     symmetrize,
 )
 from graspologic.models import BaseGraphEstimator
-from graspologic.models.sbm_estimators import _get_block_indices
+from graspologic.models.sbm_estimators import _get_block_indices, _calculate_block_p, _block_to_full
+from FisherExact import fisher_exact
+from scipy.stats import (
+    bernoulli,
+    mannwhitneyu,
+    chi2_contingency,
+    kruskal,
+    f_oneway,
+    chhi2
+)
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+from statsmodels.stats.multitest import multipletests
+from pandas import DataFrame
+from hyppo.ksample import KSample
+
 
 def _check_common_inputs(
     n_components: Optional[int],
