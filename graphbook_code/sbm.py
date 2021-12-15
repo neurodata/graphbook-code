@@ -20,7 +20,7 @@ from graspologic.utils import (
     symmetrize,
 )
 from graspologic.models import BaseGraphEstimator
-
+from graspologic.models.sbm_estimators import _get_block_indices
 
 def _check_common_inputs(
     n_components: Optional[int],
