@@ -28,13 +28,14 @@ from scipy.stats import (
     chi2_contingency,
     kruskal,
     f_oneway,
-    chhi2
+    chi2
 )
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from statsmodels.stats.multitest import multipletests
 from pandas import DataFrame
 from hyppo.ksample import KSample
+from FisherExact import fisher_exact
 
 
 def _check_common_inputs(
