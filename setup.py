@@ -11,10 +11,11 @@ with open("README.rst") as readme_file:
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
-requirements = ["graspologic", "seaborn", "matplotlib", "statsmodels", 'hyppo', 'numpy', 'FisherExact']
+requirements = ["graspologic", "seaborn", "matplotlib", "statsmodels", 'hyppo', 'numpy>=1.8.0', 'FisherExact']
 
 setup_requirements = [
     "pytest-runner",
+    "numpy>=1.8.0",
 ]
 
 test_requirements = [
