@@ -6,7 +6,6 @@ from typing import Any, Collection, Optional
 import numpy as np
 from sklearn.utils import check_X_y
 
-from graspologic.types import Dict, List, Tuple
 
 from graspologic.cluster import GaussianCluster
 from graspologic.embed import AdjacencySpectralEmbed, LaplacianSpectralEmbed
@@ -19,6 +18,7 @@ from graspologic.utils import (
     remove_loops,
     symmetrize,
 )
+
 from graspologic.models import BaseGraphEstimator
 from graspologic.models.sbm_estimators import _get_block_indices, _calculate_block_p, _block_to_full
 from FisherExact import fisher_exact
