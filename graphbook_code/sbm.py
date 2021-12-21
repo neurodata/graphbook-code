@@ -21,7 +21,7 @@ from graspologic.utils import (
 
 from graspologic.models import BaseGraphEstimator
 from graspologic.models.sbm_estimators import _get_block_indices, _calculate_block_p, _block_to_full
-from FisherExact import fisher_exact
+
 from scipy.stats import (
     bernoulli,
     mannwhitneyu,
