@@ -6,7 +6,9 @@ from typing import Any, Collection, Optional
 import numpy as np
 from sklearn.utils import check_X_y
 
-from graspologic.types import Dict, List, Tuple
+from builtins import dict as Dict
+from builtins import list as List
+from builtins import tuple as Tuple
 
 from graspologic.cluster import GaussianCluster
 from graspologic.embed import AdjacencySpectralEmbed, LaplacianSpectralEmbed
