@@ -18,7 +18,7 @@ __all_ = [
     "draw_cartesian",
     "networkplot",
     "SIEMEstimator",
-    "siem"
+    "siem",
 ]
 
 # star imports work only because we have __all__ defined
