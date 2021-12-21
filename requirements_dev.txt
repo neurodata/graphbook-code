@@ -14,4 +14,4 @@ hyppo
 
 # additions
 graspologic
-git+https://github.com/maclandrol/FisherExact.git
+git+https://github.com/ebridge2/FisherExact.git
