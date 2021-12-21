@@ -11,7 +11,7 @@ with open("README.rst") as readme_file:
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
-requirements = ["graspologic", "seaborn", "matplotlib", "statsmodels", 'hyppo', 'numpy>=1.8.0', 'FisherExact @ git+https://github.com/ebridge2/FisherExact@v1.4.4#egg=FisherExact']
+requirements = ["graspologic", "seaborn", "matplotlib", "statsmodels", 'hyppo', 'numpy>=1.8.0', 'FisherExact @ git+https://github.com/ebridge2/FisherExact@master']
 
 setup_requirements = [
     "pytest-runner",
