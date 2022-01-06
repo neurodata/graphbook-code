@@ -15,4 +15,4 @@ typing
 
 # additions
 graspologic
-git+https://github.com/ebridge2/FisherExact.git
+git+https://github.com/ebridge2/FisherExact@master
