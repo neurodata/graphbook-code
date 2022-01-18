@@ -27,9 +27,27 @@ from sklearn.utils import check_consistent_length
 import pandas as pd
 import seaborn as sns
 from matplotlib.collections import LineCollection
+from matplotlib.patches import Circle
+from matplotlib.patheffects import withStroke
 
 
 cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "tab10"}
+
+
+def add_circle(x=0, y=0, radius=0.15, ax=None):
+    if ax is None:
+        fig, ax = plt.subplots()
+    circle = Circle(
+        (x, y),
+        radius,
+        clip_on=False,
+        zorder=10,
+        linewidth=1,
+        edgecolor="black",
+        facecolor=(0, 0, 0, 0.0125),
+        path_effects=[withStroke(linewidth=5, foreground="w")],
+    )
+    ax.add_artist(circle)
 
 
 def text(label, x, y, ax=None):
@@ -301,7 +319,7 @@ def networkplot(
             **lckwargs,
         )
         ax.add_collection(lc)
-        ax.tick_params(bottom=False, left=False)
+        ax.set(xticks=[], yticks=[])
 
     return ax
 
