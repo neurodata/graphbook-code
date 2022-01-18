@@ -19,6 +19,7 @@ __all_ = [
     "networkplot",
     "SIEMEstimator",
     "siem",
+    "add_circle"
 ]
 
 # star imports work only because we have __all__ defined

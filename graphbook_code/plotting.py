@@ -50,7 +50,7 @@ def add_circle(x=0, y=0, radius=0.15, ax=None):
     ax.add_artist(circle)
 
 
-def text(label, x, y, ax=None):
+def text(label, x, y, ax=None, *args, **kwargs):
     """
     Add text to a figure.
     """
@@ -68,6 +68,8 @@ def text(label, x, y, ax=None):
         transform=ax.transAxes,
         size=32,
         bbox=dict(facecolor="white", edgecolor="none", alpha=0.5),
+        *args,
+        **kwargs,
     )
     return t
 
