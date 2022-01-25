@@ -2,7 +2,7 @@
 
 """Top-level package for graphbook-code."""
 
-__author__ = """Alex Loftus"""
+__author__ = """Alex Loftus, Eric Bridgeford"""
 __email__ = "aloftus2@jhu.edu"
 __version__ = "0.1.0"
 
@@ -19,7 +19,8 @@ __all_ = [
     "networkplot",
     "SIEMEstimator",
     "siem",
-    "add_circle"
+    "add_circle",
+    "ier"
 ]
 
 # star imports work only because we have __all__ defined
@@ -27,3 +28,4 @@ from .plotting import *
 from .utils import *
 from .siem import *
 from .sbm import *
+from .ier import *
