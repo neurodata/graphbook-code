@@ -12,7 +12,7 @@ import warnings
 from scipy.stats import mannwhitneyu
 from scipy.stats import bernoulli
 from typing import Any, Callable, Optional, Union
-from graspologic.types import Dict, List, Tuple
+from typing import Dict, List, Set, Tuple
 
 def ier(
     P: np.ndarray,
