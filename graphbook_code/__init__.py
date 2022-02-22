@@ -6,7 +6,7 @@ __author__ = """Alex Loftus"""
 __email__ = "aloftus2@jhu.edu"
 __version__ = "0.1.0"
 
-__all_ = [
+__all__ = [
     "binary_heatmap",  # plotting
     "heatmap",
     "add_legend",
@@ -19,7 +19,7 @@ __all_ = [
     "networkplot",
     "SIEMEstimator",
     "siem",
-    "add_circle"
+    "add_circle",
 ]
 
 # star imports work only because we have __all__ defined
