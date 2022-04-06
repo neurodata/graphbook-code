@@ -788,9 +788,14 @@ def heatmap(
         raise TypeError(msg)
     # Handle cmap
     X = np.asarray(X)
-    n_colors = 2 if len(np.unique(X)) == 2 else None
+    
+    n_colors = len(np.unique(X)) if len(np.unique(X)) < 12 and X.dtype != "float" else None
+    
     if "cmap" not in kwargs:
-        cmap = sns.color_palette(cmaps[color], n_colors=n_colors)
+        if X.dtype == "float":
+            cmap = sns.color_palette(cmaps[color], as_cmap=True)
+        else:
+            cmap = sns.color_palette(cmaps[color], n_colors=n_colors)
         kwargs["cmap"] = cmap
         if not isinstance(cmap, (str, list, Colormap)):
             msg = (
@@ -842,6 +847,11 @@ def heatmap(
             vmax=vmax,
             **kwargs,
         )
+        if n_colors is not None:
+            cbar = ax.collections[0].colorbar
+            cbar.set_ticks(np.linspace(arr.min(), arr.max(), n_colors*2 + 1)[2*np.arange(0, n_colors) + 1])
+            labs = [str(x) for x in np.unique(arr)] if X.dtype != 'int64' else [str(int(x)) for x in np.unique(arr)]
+            cbar.set_ticklabels(labs)
 
         if title is not None:
             if title_pad is None:
