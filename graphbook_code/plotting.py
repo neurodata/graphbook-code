@@ -657,6 +657,7 @@ def heatmap(
     ax=None,
     title_pad=None,
     sort_nodes=False,
+    n_colors=None,
     **kwargs,
 ):
     r"""
@@ -790,7 +791,6 @@ def heatmap(
     X = np.asarray(X)
     
     n_colors = len(np.unique(X)) if len(np.unique(X)) < 12 and X.dtype != "float" else None
-    
     if "cmap" not in kwargs:
         if X.dtype == "float":
             cmap = sns.color_palette(cmaps[color], as_cmap=True)
