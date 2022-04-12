@@ -795,7 +795,10 @@ def heatmap(
         if X.dtype == "float":
             cmap = sns.color_palette(cmaps[color], as_cmap=True)
         else:
-            cmap = sns.color_palette(cmaps[color], n_colors=n_colors)
+            if n_colors is None:
+                cmap = sns.color_palette(cmaps[color])
+            else:
+                cmap = sns.color_palette(cmaps[color], n_colors=n_colors)
         kwargs["cmap"] = cmap
         if not isinstance(cmap, (str, list, Colormap)):
             msg = (
@@ -805,6 +808,7 @@ def heatmap(
             raise TypeError(msg)
     else:
         cmap = kwargs["cmap"]
+
 
     # Handle center
     if center is not None:
@@ -834,6 +838,7 @@ def heatmap(
     with sns.plotting_context(context, font_scale=font_scale):
         if ax is None:
             fig, ax = plt.subplots(figsize=figsize)
+        
         plot = sns.heatmap(
             arr,
             square=True,
@@ -847,7 +852,7 @@ def heatmap(
             vmax=vmax,
             **kwargs,
         )
-        if n_colors is not None:
+        if n_colors is not None and cbar:
             cbar = ax.collections[0].colorbar
             cbar.set_ticks(np.linspace(arr.min(), arr.max(), n_colors*2 + 1)[2*np.arange(0, n_colors) + 1])
             labs = [str(x) for x in np.unique(arr)] if X.dtype != 'int64' else [str(int(x)) for x in np.unique(arr)]
