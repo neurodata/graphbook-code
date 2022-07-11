@@ -67,7 +67,7 @@ def text(label, x, y, ax=None, *args, **kwargs):
         verticalalignment="center",
         transform=ax.transAxes,
         size=32,
-        bbox=dict(facecolor="white", edgecolor="none", alpha=0.5),
+        # bbox=dict(facecolor="white", edgecolor="none", alpha=0.5),
         *args,
         **kwargs,
     )
