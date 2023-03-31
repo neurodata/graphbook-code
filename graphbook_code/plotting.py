@@ -780,7 +780,7 @@ def heatmap(
             if len(xticks) != len(xticklabels):
                 msg = "xticks and xticklabels must have same length."
                 raise ValueError(msg)
-        elif (len(ticklabels) != X.shape[1]):
+        elif (len(xticklabels) != X.shape[1]):
             msg = "If xticks unspecified, xticklabels must have same length {}.".format(X.shape[1])
             raise ValueError(msg)
 
@@ -1205,7 +1205,7 @@ def lpm_heatmap(
             if len(xticks) != len(xticklabels):
                 msg = "xticks and xticklabels must have same length."
                 raise ValueError(msg)
-        elif (len(ticklabels) != X.shape[1]):
+        elif (len(xticklabels) != X.shape[1]):
             msg = "If xticks unspecified, xticklabels must have same length {}.".format(X.shape[1])
             raise ValueError(msg)
 
