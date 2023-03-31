@@ -646,6 +646,10 @@ def heatmap(
     font_scale=1,
     xticklabels=False,
     yticklabels=False,
+    xticks = None,
+    yticks = None,
+    xtitle="",
+    ytitle="",
     color="sequential",
     vmin=None,
     vmax=None,
@@ -769,9 +773,15 @@ def heatmap(
         raise ValueError(msg)
 
     # Handle ticklabels
+ 
+    # Handle ticklabels
     if isinstance(xticklabels, list):
-        if len(xticklabels) != X.shape[1]:
-            msg = "xticklabels must have same length {}.".format(X.shape[1])
+        if xticks is not None:
+            if len(xticks) != len(xticklabels):
+                msg = "xticks and xticklabels must have same length."
+                raise ValueError(msg)
+        elif (len(ticklabels) != X.shape[1]):
+            msg = "If xticks unspecified, xticklabels must have same length {}.".format(X.shape[1])
             raise ValueError(msg)
 
     elif not isinstance(xticklabels, (bool, int, list)):
@@ -781,14 +791,20 @@ def heatmap(
         raise TypeError(msg)
 
     if isinstance(yticklabels, list):
-        if len(yticklabels) != X.shape[0]:
-            msg = "yticklabels must have same length {}.".format(X.shape[0])
+        if yticks is not None:
+            if len(yticks) != len(yticklabels):
+                msg = "yticks and yticklabels must have same length."
+                raise ValueError(msg)
+        elif (len(yticklabels) != X.shape[0]):
+            msg = "If yticks unspecified, yticklabels must have same length {}.".format(X.shape[0])
             raise ValueError(msg)
+
     elif not isinstance(yticklabels, (bool, int, list)):
         msg = "yticklabels must be a bool, int, or a list, not {}".format(
             type(yticklabels)
         )
         raise TypeError(msg)
+
     # Handle cmap
     X = np.asarray(X)
     
@@ -865,6 +881,16 @@ def heatmap(
             cbar.set_ticks(np.linspace(arr.min(), arr.max(), n_colors*2 + 1)[2*np.arange(0, n_colors) + 1])
             labs = [str(x) for x in np.unique(arr)] if X.dtype != 'int64' else [str(int(x)) for x in np.unique(arr)]
             cbar.set_ticklabels(labs)
+        if (xticks is not None):
+            plot.set_xticks(xticks)
+        if isinstance(xticklabels, list):
+            plot.set_xticklabels(xticklabels)
+        plot.set_xlabel(xtitle)
+        if (yticks is not None):
+            plot.set_yticks(yticks)
+        if isinstance(yticklabels, list):
+            plot.set_yticklabels(yticklabels)
+        plot.set_ylabel(ytitle)
 
         if title is not None:
             if title_pad is None:
