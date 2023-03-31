@@ -657,6 +657,8 @@ def heatmap(
     ax=None,
     title_pad=None,
     sort_nodes=False,
+    shrink = None,
+    legend_title = None,
     n_colors=None,
     **kwargs,
 ):
@@ -818,7 +820,7 @@ def heatmap(
 
     # Handle cbar
     if not isinstance(cbar, bool):
-        msg = "cbar must be a bool, not {}.".format(type(center))
+        msg = "cbar must be a bool, not {}.".format(type(cbar))
         raise TypeError(msg)
 
     # Warning on labels
@@ -832,8 +834,14 @@ def heatmap(
         [arr], inner_hier_labels, outer_hier_labels, transform, sort_nodes
     )[0]
 
+    CBAR_KWS = {}
     # Global plotting settings
-    CBAR_KWS = dict(shrink=0.7)  # norm=colors.Normalize(vmin=0, vmax=1))
+    if legend_title is not None:
+        CBAR_KWS["label"] = legend_title
+    if shrink is not None:
+        CBAR_KWS["shrink"] = shrink
+    else:
+        CBAR_KWS["shrink"] = 0.7
 
     with sns.plotting_context(context, font_scale=font_scale):
         if ax is None:
@@ -993,3 +1001,263 @@ def _plot_groups(ax, graph, inner_labels, outer_labels=None, fontsize=30):
             fontsize,
         )
     return ax
+
+
+
+def plot_vector(
+        vec, 
+        title="",
+        ax=None, 
+        context="talk",
+        ticks=False,
+        ticklabels=False, 
+        ticktitle="",
+        cbar_title="", 
+        color="sequential", 
+        cbar=True,
+        legend_title = None,
+        font_scale=1,
+        figsize=(2, 6),
+        vmin=None,
+        vmax=None,
+        center=None,
+        shrink = 0.5,
+        title_pad = None,
+        **kwargs,
+    ):
+    """
+    A function to plot a vector of node metadata.
+    """
+
+    n_colors=len(np.unique(vec))
+
+    X = np.array(vec)
+    n_colors = len(np.unique(X)) if len(np.unique(X)) < 12 and X.dtype != "float" else None
+    if "cmap" not in kwargs:
+        if X.dtype == "float":
+            cmap = sns.color_palette(cmaps[color], as_cmap=True)
+        else:
+            if n_colors is None:
+                cmap = sns.color_palette(cmaps[color])
+            else:
+                cmap = sns.color_palette(cmaps[color], n_colors=n_colors)
+        kwargs["cmap"] = cmap
+        if not isinstance(cmap, (str, list, Colormap)):
+            msg = (
+                "cmap must be a string, list of colors, or matplotlib.colors.Colormap,"
+            )
+            msg += " not {}.".format(type(cmap))
+            raise TypeError(msg)
+    else:
+        cmap = kwargs["cmap"]
+
+
+    # Handle ticklabels
+    if isinstance(ticklabels, list):
+        if ticks is not None:
+            if len(ticks) != len(ticklabels):
+                msg = "ticks and ticklabels must have same length."
+                raise ValueError(msg)
+        elif (len(ticklabels) != X.shape[0]):
+            msg = "If ticks unspecified, ticklabels must have same length {}.".format(X.shape[0])
+            raise ValueError(msg)
+
+    elif not isinstance(ticklabels, (bool, int, list)):
+        msg = "ticklabels must be a bool, int, or a list, not {}".format(
+            type(ticklabels)
+        )
+        raise TypeError(msg)
+
+    # Handle cbar
+    if not isinstance(cbar, bool):
+        msg = "cbar must be a bool, not {}.".format(type(center))
+        raise TypeError(msg)
+
+    CBAR_KWS = {}
+    # Global plotting settings
+    if legend_title is not None:
+        CBAR_KWS["label"] = legend_title
+    if shrink is not None:
+        CBAR_KWS["shrink"] = shrink
+    else:
+        CBAR_KWS["shrink"] = 0.7
+
+
+    with sns.plotting_context(context, font_scale=font_scale):
+        if ax is None:
+            fig, ax = plt.subplots(figsize=figsize)
+        
+        if isinstance(ticklabels, bool):
+            kwargs["yticklabels"] = ticklabels
+    
+        plot = sns.heatmap(
+            vec.reshape(-1, 1),
+            xticklabels=False,
+            cbar_kws=CBAR_KWS,
+            center=center,
+            cbar=cbar,
+            ax=ax,
+            vmin=vmin,
+            vmax=vmax,
+            **kwargs,
+        )
+        if (ticks is not None):
+            plot.set_yticks(ticks)
+        if isinstance(ticklabels, list):
+            plot.set_yticklabels(ticklabels)
+        plot.set_ylabel(ticktitle)
+
+
+        if n_colors is not None and cbar:
+            cbar = ax.collections[0].colorbar
+            cbar.set_ticks(np.linspace(vec.min(), vec.max(), n_colors*2 + 1)[2*np.arange(0, n_colors) + 1])
+            labs = [str(x) for x in np.unique(vec)] if X.dtype != 'int64' else [str(int(x)) for x in np.unique(vec)]
+            cbar.set_ticklabels(labs)
+
+        if title is not None:
+            if title_pad is None:
+                title_pad = 1.5 * font_scale + 15
+            plot.set_title(title, pad=title_pad)
+    return plot
+
+
+
+def lpm_heatmap(
+        X, 
+        title="",
+        ax=None, 
+        context="talk",
+        xticks=None,
+        xticklabels=False,
+        yticks=None,
+        yticklabels=False, 
+        cbar_title="", 
+        color="sequential", 
+        cbar=True,
+        legend_title = None,
+        font_scale=1,
+        figsize=(2, 6),
+        vmin=None,
+        vmax=None,
+        center=None,
+        shrink = 0.5,
+        title_pad = None,
+        xtitle="",
+        ytitle="",
+        **kwargs,
+    ):
+    """
+    A function to plot a vector of node metadata.
+    """
+
+    n_colors=len(np.unique(X))
+
+    X = np.array(X)
+    n_colors = len(np.unique(X)) if len(np.unique(X)) < 12 and X.dtype != "float" else None
+    if "cmap" not in kwargs:
+        if X.dtype == "float":
+            cmap = sns.color_palette(cmaps[color], as_cmap=True)
+        else:
+            if n_colors is None:
+                cmap = sns.color_palette(cmaps[color])
+            else:
+                cmap = sns.color_palette(cmaps[color], n_colors=n_colors)
+        kwargs["cmap"] = cmap
+        if not isinstance(cmap, (str, list, Colormap)):
+            msg = (
+                "cmap must be a string, list of colors, or matplotlib.colors.Colormap,"
+            )
+            msg += " not {}.".format(type(cmap))
+            raise TypeError(msg)
+    else:
+        cmap = kwargs["cmap"]
+
+
+    # Handle ticklabels
+    if isinstance(xticklabels, list):
+        if xticks is not None:
+            if len(xticks) != len(xticklabels):
+                msg = "xticks and xticklabels must have same length."
+                raise ValueError(msg)
+        elif (len(ticklabels) != X.shape[1]):
+            msg = "If xticks unspecified, xticklabels must have same length {}.".format(X.shape[1])
+            raise ValueError(msg)
+
+    elif not isinstance(xticklabels, (bool, int, list)):
+        msg = "xticklabels must be a bool, int, or a list, not {}".format(
+            type(xticklabels)
+        )
+        raise TypeError(msg)
+
+    if isinstance(yticklabels, list):
+        if yticks is not None:
+            if len(yticks) != len(yticklabels):
+                msg = "yticks and yticklabels must have same length."
+                raise ValueError(msg)
+        elif (len(yticklabels) != X.shape[0]):
+            msg = "If yticks unspecified, yticklabels must have same length {}.".format(X.shape[0])
+            raise ValueError(msg)
+
+    elif not isinstance(yticklabels, (bool, int, list)):
+        msg = "yticklabels must be a bool, int, or a list, not {}".format(
+            type(yticklabels)
+        )
+        raise TypeError(msg)
+
+
+
+    # Handle cbar
+    if not isinstance(cbar, bool):
+        msg = "cbar must be a bool, not {}.".format(type(center))
+        raise TypeError(msg)
+
+    CBAR_KWS = {}
+    # Global plotting settings
+    if legend_title is not None:
+        CBAR_KWS["label"] = legend_title
+    if shrink is not None:
+        CBAR_KWS["shrink"] = shrink
+    else:
+        CBAR_KWS["shrink"] = 0.7
+
+
+    with sns.plotting_context(context, font_scale=font_scale):
+        if ax is None:
+            fig, ax = plt.subplots(figsize=figsize)
+        
+        if isinstance(yticklabels, bool):
+            kwargs["yticklabels"] = yticklabels
+        if isinstance(xticklabels, bool):
+            kwargs["xticklabels"] = xticklabels
+        plot = sns.heatmap(
+            X,
+            cbar_kws=CBAR_KWS,
+            center=center,
+            cbar=cbar,
+            ax=ax,
+            vmin=vmin,
+            vmax=vmax,
+            **kwargs,
+        )
+        if (xticks is not None):
+            plot.set_xticks(xticks)
+        if isinstance(xticklabels, list):
+            plot.set_xticklabels(xticklabels)
+        plot.set_xlabel(xtitle)
+        if (yticks is not None):
+            plot.set_yticks(yticks)
+        if isinstance(yticklabels, list):
+            plot.set_yticklabels(yticklabels)
+        plot.set_ylabel(ytitle)
+
+        if n_colors is not None and cbar:
+            cbar = ax.collections[0].colorbar
+            cbar.set_ticks(np.linspace(X.min(), X.max(), n_colors*2 + 1)[2*np.arange(0, n_colors) + 1])
+            labs = [str(x) for x in np.unique(X)] if X.dtype != 'int64' else [str(int(x)) for x in np.unique(X)]
+            cbar.set_ticklabels(labs)
+
+        if title is not None:
+            if title_pad is None:
+                title_pad = 1.5 * font_scale + 15
+            plot.set_title(title, pad=title_pad)
+    return plot

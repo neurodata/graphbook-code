@@ -21,6 +21,10 @@ __all__ = [
     "siem",
     "add_circle",
     "ier",
+    "plot_vector",
+    "ohe_comm_vec",
+    "generate_sbm_pmtx",
+    "dcsbm"
 ]
 
 # star imports work only because we have __all__ defined

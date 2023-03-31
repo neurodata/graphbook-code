@@ -19,6 +19,7 @@ from graspologic.utils import (
     remove_loops,
     symmetrize,
 )
+from graspologic.simulations import sample_edges
 
 from graspologic.models import BaseGraphEstimator
 from graspologic.models.sbm_estimators import _get_block_indices, _calculate_block_p, _block_to_full
@@ -68,6 +69,77 @@ def _check_common_inputs(
 
     if not isinstance(embed_kws, dict):
         raise TypeError("embed_kws must be a dict")
+
+def block_mtx_psd(B):
+    """
+    A function which indicates whether a block matrix
+    B is positive semi-definite.
+    """
+    return np.all(np.linalg.eigvals(B) >= 0)
+
+def ohe_comm_vec(z):
+    """
+    A function to generate the one-hot-encoded community
+    assignment matrix from a community assignment vector.
+    """
+    K = len(np.unique(z))
+    n = len(z)
+    C = np.zeros((n, K))
+    for i, zi in enumerate(z):
+        C[i, zi - 1] = 1
+    return C
+
+
+def generate_sbm_pmtx(z, B):
+    """
+    A function to generate the probability matrix for an SBM.
+    """
+    C = ohe_comm_vec(z)
+    # probability matrix
+    return C @ B @ C.T
+
+
+def dcsbm(z, theta, B, directed=False, loops=False, return_prob=False):
+    """
+    A function to sample a DCSBM.
+    """
+    # uncorrected probability matrix
+    Pp = generate_sbm_pmtx(z, B)
+    theta = theta.reshape(-1)
+    # apply the degree correction
+    Theta = np.diag(theta)
+    P = Theta @ Pp @ Theta.transpose()
+    robj = sample_edges(P, directed=directed, loops=loops)
+    if return_prob:
+        robj = (robj, P)
+    return robj
+
+
+def lpm_from_sbm(z, B):
+    """
+    A function to produce a latent position matrix from a
+    community assignment vector and a block matrix.
+    """
+    if not block_mtx_psd(B):
+        raise ValueError("Latent position matrices require PSD block matrices!")
+    # one-hot encode the community assignment vector
+    C = ohe_comm_vec(z)
+    # compute square root matrix
+    sqrtB = np.linalg.cholesky(B)
+    # X = C*sqrt(B)
+    return C @ sqrtB
+
+
+def lpm_from_dcsbm(z, theta, B):
+    """
+    A function to produce a latent position matrix from a
+    community assignment vector, a degree-correction vector,
+    and a block matrix.
+    """
+    # X' = C*sqrt(B)
+    Xp = lpm_from_sbm(z, B)
+    # X = Theta*X' = Theta * C * sqrt(B)
+    return np.diag(theta) @ Xp
 
 
 class SBMEstimator(BaseGraphEstimator):
