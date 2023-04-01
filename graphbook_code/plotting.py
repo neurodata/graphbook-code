@@ -31,7 +31,7 @@ from matplotlib.patches import Circle
 from matplotlib.patheffects import withStroke
 
 
-cmaps = {"sequential": "Purples", "divergent": "RdBu_r", "qualitative": "tab10"}
+cmaps = {"sequential": "Greys", "divergent": "RdBu_r", "qualitative": "tab10"}
 
 
 def add_circle(x=0, y=0, radius=0.15, ax=None):
