@@ -1035,7 +1035,7 @@ def plot_vector(
         title="",
         ax=None, 
         context="talk",
-        ticks=False,
+        ticks=None,
         ticklabels=False, 
         ticktitle="",
         cbar_title="", 

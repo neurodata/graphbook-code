@@ -77,11 +77,14 @@ def block_mtx_psd(B):
     """
     return np.all(np.linalg.eigvals(B) >= 0)
 
-def ohe_comm_vec(z):
+def ohe_comm_vec(z, zero_index=False):
     """
     A function to generate the one-hot-encoded community
     assignment matrix from a community assignment vector.
     """
+    # if the labels are zero-indexed, right-shift them
+    if min(z) == 0:
+        z = z + 1
     K = len(np.unique(z))
     n = len(z)
     C = np.zeros((n, K))
