@@ -24,7 +24,10 @@ __all__ = [
     "plot_vector",
     "ohe_comm_vec",
     "generate_sbm_pmtx",
-    "dcsbm"
+    "dcsbm",
+    "lpm_from_sbm",
+    "lpm_from_dcsbm",
+    "generate_dcsbm_pmtx"
 ]
 
 # star imports work only because we have __all__ defined
