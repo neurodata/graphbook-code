@@ -101,10 +101,9 @@ def generate_sbm_pmtx(z, B):
     # probability matrix
     return C @ B @ C.T
 
-
-def dcsbm(z, theta, B, directed=False, loops=False, return_prob=False):
+def generate_dcsbm_pmtx(z, theta, B):
     """
-    A function to sample a DCSBM.
+    A function to generate the probability matrix for a DCSBM.
     """
     # uncorrected probability matrix
     Pp = generate_sbm_pmtx(z, B)
@@ -112,6 +111,13 @@ def dcsbm(z, theta, B, directed=False, loops=False, return_prob=False):
     # apply the degree correction
     Theta = np.diag(theta)
     P = Theta @ Pp @ Theta.transpose()
+    return P
+
+def dcsbm(z, theta, B, directed=False, loops=False, return_prob=False):
+    """
+    A function to sample a DCSBM.
+    """
+    P = generate_dcsbm_pmtx(z, theta, B)
     robj = sample_edges(P, directed=directed, loops=loops)
     if return_prob:
         robj = (robj, P)
