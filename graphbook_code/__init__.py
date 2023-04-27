@@ -2,8 +2,8 @@
 
 """Top-level package for graphbook-code."""
 
-__author__ = """Alex Loftus, Eric Bridgeford"""
-__email__ = "aloftus2@jhu.edu"
+__author__ = """Eric W. Bridgeford, Alex R. Loftus"""
+__email__ = "ericwb95@gmail.com"
 __version__ = "0.1.0"
 
 __all__ = [
