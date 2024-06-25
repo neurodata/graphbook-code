@@ -480,6 +480,8 @@ def plot_latents(
     *,
     title=None,
     labels=None,
+    xtitle=None,
+    ytitle=None,
     ax=None,
     legend=True,
     fontdict=None,
@@ -512,8 +514,12 @@ def plot_latents(
     h, _ = plot.get_legend_handles_labels()
     if legend and h:
         ax.legend(title="Community")
-    elif not legend and np.any(labels):
+    elif not legend and labels is not None:
         ax.get_legend().remove()
+    if xtitle is not None:
+        ax.set_xlabel(xtitle)
+    if ytitle is not None:
+        ax.set_ylabel(ytitle)
 
     return plot
 
