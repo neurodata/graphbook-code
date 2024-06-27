@@ -905,7 +905,7 @@ def heatmap(
                     title_pad = 1.5 * font_scale + 1 * hier_label_fontsize + 30
                 else:
                     title_pad = 1.5 * font_scale + 15
-            plot.set_title(title, pad=title_pad)
+            plot.set_title(title, pad=title_pad, loc="left")
         if inner_hier_labels is not None:
             if outer_hier_labels is not None:
                 plot.set_yticklabels([])
@@ -1150,7 +1150,7 @@ def plot_vector(
         if title is not None:
             if title_pad is None:
                 title_pad = 1.5 * font_scale + 15
-            plot.set_title(title, pad=title_pad)
+            plot.set_title(title, pad=title_pad, loc="left")
     return plot
 
 
@@ -1292,5 +1292,5 @@ def lpm_heatmap(
         if title is not None:
             if title_pad is None:
                 title_pad = 1.5 * font_scale + 15
-            plot.set_title(title, pad=title_pad)
+            plot.set_title(title, pad=title_pad, loc="left")
     return plot
