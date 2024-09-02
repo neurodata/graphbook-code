@@ -480,8 +480,11 @@ def plot_latents(
     *,
     title=None,
     labels=None,
+    xtitle=None,
+    ytitle=None,
     ax=None,
     legend=True,
+    legend_title=None,
     fontdict=None,
     palette=None,
     **kwargs,
@@ -511,9 +514,13 @@ def plot_latents(
 
     h, _ = plot.get_legend_handles_labels()
     if legend and h:
-        ax.legend(title="Community")
-    elif not legend and np.any(labels):
+        ax.legend(title=legend_title)
+    elif not legend and labels is not None:
         ax.get_legend().remove()
+    if xtitle is not None:
+        ax.set_xlabel(xtitle)
+    if ytitle is not None:
+        ax.set_ylabel(ytitle)
 
     return plot
 
@@ -898,7 +905,7 @@ def heatmap(
                     title_pad = 1.5 * font_scale + 1 * hier_label_fontsize + 30
                 else:
                     title_pad = 1.5 * font_scale + 15
-            plot.set_title(title, pad=title_pad)
+            plot.set_title(title, pad=title_pad, loc="left")
         if inner_hier_labels is not None:
             if outer_hier_labels is not None:
                 plot.set_yticklabels([])
@@ -1143,7 +1150,7 @@ def plot_vector(
         if title is not None:
             if title_pad is None:
                 title_pad = 1.5 * font_scale + 15
-            plot.set_title(title, pad=title_pad)
+            plot.set_title(title, pad=title_pad, loc="left")
     return plot
 
 
@@ -1285,5 +1292,5 @@ def lpm_heatmap(
         if title is not None:
             if title_pad is None:
                 title_pad = 1.5 * font_scale + 15
-            plot.set_title(title, pad=title_pad)
+            plot.set_title(title, pad=title_pad, loc="left")
     return plot
